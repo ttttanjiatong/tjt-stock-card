@@ -285,31 +285,43 @@ def get_financial_history(code: str, years: int = 5) -> pd.DataFrame:
 @st.cache_data(ttl=86400)
 def _sw_first_info() -> pd.DataFrame:
     """申万 31 个一级行业 + 行业级 PE/PB。两层缓存：disk + session。"""
-    return _ak_sw_first_info()
+    return _fetch_with_retry(_ak_sw_first_info, retries=1, timeout=15)
+
+
+def _fetch_industry_cons(code_name: tuple) -> tuple:
+    """拉单个申万一级行业的成份股；境外服务器加超时保护。"""
+    code, name = code_name
+    try:
+        cons = _fetch_with_retry(lambda: _ak_index_component_sw(code),
+                                 retries=1, timeout=12)
+        return code, name, cons
+    except Exception:
+        return code, name, None
 
 
 @st.cache_data(ttl=86400)
 def _sw_industry_index() -> dict[str, dict]:
     """反向索引：股票代码 -> {industry_name, industry_code, weight}。
 
-    首次构建 ~50s（31 个一级行业 × index_component_sw），落盘后跨进程秒回。
+    首次冷启动 ~40-60s（31 个一级行业并发拉 + 单条 12s 超时），落盘后跨进程秒回。
+    部分行业拉不到不影响整体构建（只是这些行业的股票会走 cninfo fallback）。
     """
     info = _sw_first_info()
+    pairs = [(str(r["行业代码"]).split(".")[0], str(r["行业名称"]))
+             for _, r in info.iterrows()]
+
     index: dict[str, dict] = {}
-    for _, row in info.iterrows():
-        code = str(row["行业代码"]).split(".")[0]
-        name = str(row["行业名称"])
-        try:
-            cons = _ak_index_component_sw(code)
-        except Exception:
-            continue
-        for _, c in cons.iterrows():
-            stock_code = str(c["证券代码"]).zfill(6)
-            index[stock_code] = {
-                "industry_name": name,
-                "industry_code": code,
-                "weight": float(c.get("最新权重", 0) or 0),
-            }
+    with ThreadPoolExecutor(max_workers=8) as ex:
+        for code, name, cons in ex.map(_fetch_industry_cons, pairs):
+            if cons is None:
+                continue
+            for _, c in cons.iterrows():
+                stock_code = str(c["证券代码"]).zfill(6)
+                index[stock_code] = {
+                    "industry_name": name,
+                    "industry_code": code,
+                    "weight": float(c.get("最新权重", 0) or 0),
+                }
     return index
 
 

@@ -83,8 +83,6 @@ def _render_single_stock_page() -> None:
 
     render_ai_views(stock, red_flags)
 
-    st.caption("⚠️ 本工具不提供任何投资建议，仅辅助投研信息整合")
-
 
 def main() -> None:
     with st.sidebar:
