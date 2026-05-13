@@ -5,7 +5,7 @@
 """
 from __future__ import annotations
 
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ThreadPoolExecutor, TimeoutError as FutureTimeout, as_completed
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
@@ -64,11 +64,16 @@ def _ak_prefix(code: str) -> str:
     return f"bj{code}"
 
 
-def _fetch_with_retry(fn, retries: int = 2):
+def _fetch_with_retry(fn, retries: int = 2, timeout: float = 15):
+    """带超时的重试。akshare 的 requests 默认 timeout=None，在境外服务器访问国内
+    域名时可能 hang 死整个会话，所以这里强制单次调用超时。"""
     last = None
     for _ in range(retries + 1):
         try:
-            return fn()
+            with ThreadPoolExecutor(max_workers=1) as ex:
+                return ex.submit(fn).result(timeout=timeout)
+        except FutureTimeout as e:
+            last = TimeoutError(f"call timed out after {timeout}s")
         except Exception as e:
             last = e
     raise last
