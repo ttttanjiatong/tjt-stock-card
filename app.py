@@ -95,8 +95,6 @@ def main() -> None:
         )
         st.divider()
         st.caption("💡 单股：完整的 7 模块卡片  \n💡 多股：最多 4 只票横向对比")
-        st.divider()
-        st.caption("🔧 持久化缓存已启用  \n清缓存：`python -m scripts.clear_cache`")
 
     if mode == "多股对比":
         render_compare_page()
