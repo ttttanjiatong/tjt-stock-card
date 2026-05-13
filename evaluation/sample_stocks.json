@@ -1,0 +1,12 @@
+[
+  {"code": "600219", "name": "南山铝业", "industry": "有色金属"},
+  {"code": "600362", "name": "江西铜业", "industry": "有色金属"},
+  {"code": "000858", "name": "五粮液", "industry": "白酒"},
+  {"code": "600519", "name": "贵州茅台", "industry": "白酒"},
+  {"code": "300750", "name": "宁德时代", "industry": "动力电池"},
+  {"code": "002594", "name": "比亚迪", "industry": "新能源车"},
+  {"code": "000651", "name": "格力电器", "industry": "家电"},
+  {"code": "601318", "name": "中国平安", "industry": "保险"},
+  {"code": "000333", "name": "美的集团", "industry": "家电"},
+  {"code": "600036", "name": "招商银行", "industry": "银行"}
+]

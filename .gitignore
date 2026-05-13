@@ -1,0 +1,35 @@
+# Secrets and env
+.env
+.streamlit/secrets.toml
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# IDE / OS
+.DS_Store
+.idea/
+.vscode/
+
+# Project data dirs
+data/cache/
+evaluation/results/
+
+# Private design doc (not for public repo)
+*.docx
+*.doc
+
+# Internal docs for personal / interview use, not for public GitHub
+USAGE.md
+ARCHITECTURE.md
+DEMO_CHECKLIST.md
+DEPLOYMENT.md
+
+# Local logs
+scripts/*.log
+*.log
+
+# joblib disk cache (~1-2GB after warmup; clear via `python -m scripts.clear_cache`)
+.cache/
